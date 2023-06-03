@@ -1,3 +1,3 @@
-module github.com/binance-converter/binance-p2p-api
+module github.com/bazgalev/binance-p2p-api
 
-go 1.19
+go 1.20

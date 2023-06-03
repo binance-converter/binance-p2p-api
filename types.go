@@ -19,21 +19,23 @@ const (
 	MozillaUserAgent           = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0"
 )
 
+type TradeType string
+
 const (
-	OperationBuy  = "BUY"
-	OperationSell = "SELL"
+	TradeTypeBuy  TradeType = "BUY"
+	TradeTypeSell TradeType = "SELL"
 )
 
 type Request struct {
-	Asset         string   `json:"asset"`
-	Fiat          string   `json:"fiat"`
-	MerchantCheck bool     `json:"merchantCheck"`
-	Page          int      `json:"page"`
-	PayTypes      []string `json:"payTypes"`
-	PublisherType *string  `json:"publisherType"`
-	Rows          int      `json:"rows"`
-	TradeType     string   `json:"tradeType"`
-	TransAmount   float64  `json:"transAmount"`
+	Asset         string    `json:"asset"`
+	Fiat          string    `json:"fiat"`
+	MerchantCheck bool      `json:"merchantCheck"`
+	Page          int       `json:"page"`
+	PayTypes      []string  `json:"payTypes"`
+	PublisherType *string   `json:"publisherType"`
+	Rows          int       `json:"rows"`
+	TradeType     TradeType `json:"tradeType"`
+	TransAmount   float64   `json:"transAmount"`
 }
 
 type Response struct {
@@ -145,4 +147,10 @@ type Advertiser struct {
 	UserIdentity     string        `json:"userIdentity"`
 	ProMerchant      interface{}   `json:"proMerchant"`
 	IsBlocked        interface{}   `json:"isBlocked"`
+}
+
+type Exchange struct {
+	Price     float64
+	MinAmount float64
+	MaxAmount float64
 }

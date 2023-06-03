@@ -6,46 +6,51 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type BinanceP2PApi struct {
+	client *http.Client
 }
 
-func NewBinanceP2PApi() *BinanceP2PApi {
-	return &BinanceP2PApi{}
+func NewBinanceP2PApi(client *http.Client) *BinanceP2PApi {
+	return &BinanceP2PApi{
+		client: client,
+	}
 }
 
 func (b *BinanceP2PApi) GetExchange(assets string, fiat string, payTypes []string,
-	tradeType string, transAmount float64) (exchange float64, minAmount float64, maxAmount float64,
-	err error) {
+	tradeType TradeType, transAmount float64) (Exchange, error) {
 	rawExchange, err := b.GetExchangesRaw(assets, fiat, 1, payTypes, 1, tradeType, transAmount)
 	if err != nil {
-		return 0, 0, 0, err
+		return Exchange{}, err
 	}
 
 	if len(rawExchange.Data) == 0 {
-		return 0, 0, 0, errors.New("no results")
+		return Exchange{}, errors.New("no results")
 	}
 
-	exchange, err = strconv.ParseFloat(rawExchange.Data[0].Adv.Price, 32)
+	price, err := strconv.ParseFloat(rawExchange.Data[0].Adv.Price, 32)
 	if err != nil {
-		return 0, 0, 0, err
+		return Exchange{}, err
 	}
-	minAmount, err = strconv.ParseFloat(rawExchange.Data[0].Adv.MinSingleTransAmount, 32)
+	minAmount, err := strconv.ParseFloat(rawExchange.Data[0].Adv.MinSingleTransAmount, 32)
 	if err != nil {
-		return 0, 0, 0, err
+		return Exchange{}, err
 	}
-	maxAmount, err = strconv.ParseFloat(rawExchange.Data[0].Adv.MaxSingleTransAmount, 32)
+	maxAmount, err := strconv.ParseFloat(rawExchange.Data[0].Adv.MaxSingleTransAmount, 32)
 	if err != nil {
-		return 0, 0, 0, err
+		return Exchange{}, err
 	}
 
-	return exchange, minAmount, maxAmount, nil
+	return Exchange{
+		Price:     price,
+		MinAmount: minAmount,
+		MaxAmount: maxAmount,
+	}, nil
 }
 
 func (b *BinanceP2PApi) GetExchangesRaw(assets string, fiat string, page int, payTypes []string,
-	rows int, tradeType string, transAmount float64) (Response, error) {
+	rows int, tradeType TradeType, transAmount float64) (Response, error) {
 
 	body := Request{
 		Asset:       assets,
@@ -73,11 +78,7 @@ func (b *BinanceP2PApi) GetExchangesRaw(assets string, fiat string, page int, pa
 	request.Header.Set(HeaderTE, TrailersTE)
 	request.Header.Set(HeaderUserAgent, MozillaUserAgent)
 
-	client := http.Client{
-		Timeout: 5 * time.Second,
-	}
-
-	responseRaw, err := client.Do(request)
+	responseRaw, err := b.client.Do(request)
 	if err != nil {
 		return Response{}, err
 	}
